@@ -1,13 +1,22 @@
-# Reproducible Research: Peer Assessment 1
+## Reproducible Research: Peer Assessment 1
 
 
-## Loading and preprocessing the data
+## 1. Loading and preprocessing the data
+##    
+### read set
+```{readset, echo =TRUE}
+actmon <- read.csv("activity.csv", sep = ",", stringsAsFactors = FALSE, na.strings = "NA")
+```
+### get data frame information 
+```{r dfinfo, echo = TRUE, result="hide"}
+summary(actmon)
+str(actmon)
+```
+## 2. What is mean total number of steps taken per day?
+```{r stepsmean, echo = TRUE}
+mean(actmon$steps, na.rm = TRUE)
 
-
-
-## What is mean total number of steps taken per day?
-
-
+```
 
 ## What is the average daily activity pattern?
 
