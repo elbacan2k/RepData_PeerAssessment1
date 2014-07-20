@@ -105,23 +105,21 @@ testsetWkEnd["wkdaytype"] <- "weekend"
 
 ## combine subsets
 completeActMonData2 <- rbind(testsetWkdy, testsetWkEnd)
-
+## convert wkdaytype column to factor
 completeActMonData2$wkdaytype <- as.factor(completeActMonData2$wkdaytype)
-
 
 ## create aggregates of weekday and weekend sets
 wkdaysteps <- aggregate(steps ~ interval, testsetWkdy, mean) 
 wkendsteps <- aggregate(steps ~ interval, testsetWkEnd, mean) 
 
-## 
-
-plot(wkdaysteps$interval, wkdaysteps$steps, xlab = "Interval", ylab = "Avg. # Steps", type = "l")
-plot(wkendsteps$interval, wkendsteps$steps, xlab = "Interval", ylab = "Avg. # Steps", type = "l")
-
-##ggplot(wkdaysteps, aes(x=wkdaysteps$interval)) + xlab("Interval") + ylab("Steps") + geom_histogram(binwidth=100)
-##ggplot(wkendsteps, aes(x=wkendsteps$interval)) + xlab("Interval") + ylab("Steps") + geom_histogram(binwidth=100)
+## set canvas to be 2 rows and 1 column
+par(mfrow = c(2, 1))
+## plot data frames
+plot(wkdaysteps$interval, wkdaysteps$steps, xlab = "Interval", ylab = "Avg. # Steps", main = "Weekday Data", type = "l")
+plot(wkendsteps$interval, wkendsteps$steps, xlab = "Interval", ylab = "Avg. # Steps", main = "Weekend Data", type = "l")
 
 
+## there are more steps on the weekend for the same intervals
 
 
 ```
