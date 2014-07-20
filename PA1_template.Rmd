@@ -2,28 +2,133 @@
 
 
 ## 1. Loading and preprocessing the data
-##    
-### read set
+
 ```{readset, echo =TRUE}
-actmon <- read.csv("activity.csv", sep = ",", stringsAsFactors = FALSE, na.strings = "NA")
-```
-### get data frame information 
-```{r dfinfo, echo = TRUE, result="hide"}
+library(ggplot2)
+## 1. Load the data (i.e. read.csv())
+## read set
+actmonData <- read.csv("activity.csv", sep = ",", stringsAsFactors = FALSE, na.strings = "NA")
+## make new data frame excluding NA rows
+actmon <- na.omit(actmonData) 
+## convert date column into Date objects
+actmon$date <- as.Date.character(actmon$date , "%Y-%m-%d")
+## get data frame information 
 summary(actmon)
 str(actmon)
 ```
+
 ## 2. What is mean total number of steps taken per day?
-```{r stepsmean, echo = TRUE}
-mean(actmon$steps, na.rm = TRUE)
+```{r stepshist, , echo=TRUE, height=4}
+## part 1: build histogram
+## build df of total steps by date
+sumsteps <- aggregate(steps ~ date, actmon, sum) 
+## build histogram
+ggplot(sumsteps, aes(x=sumsteps$steps)) + xlab("Steps") + ylab("Count") + geom_histogram(binwidth=500)
+
+## calculate mean of steps column
+mean(sumsteps$steps, na.rm = TRUE)
+
+## calculate median
+median(sumsteps$steps, na.rm = TRUE)
 
 ```
 
 ## What is the average daily activity pattern?
-
-
+```{r avgdailypattern, echo = TRUE}
+## build df of average steps by interval
+avgintsteps <- aggregate(steps ~ interval, actmon, mean) 
+## plot 
+plot(avgintsteps$interval, avgintsteps$steps, xlab = "Interval", ylab = "Avg. # Steps", type = "l")
+## find interval with maximum average number of steps
+avgintsteps[which.max(avgintsteps$steps), ]
+```
 
 ## Imputing missing values
+```{r missingvals, echo = TRUE}
+## get number of rows that have NA values
+## build true/false set based on complete.cases()
+nalogvect <- complete.cases(actmonData)
+## get number of rows that have NA values
+sum(!nalogvect)
 
+## create a data set equal to original data set
+completeActMonData <- actmonData
+
+## loop through average steps by interval df
+for(i in 1:nrow(avgintsteps)){
+    ## get current avgintsteps$interval[i]
+    currentinterval <- avgintsteps$interval[i]
+    ## get current avgintsteps$steps[i]
+    currentavgsteps <- avgintsteps$steps[i]
+    ## loop through complete df
+    for(x in 1:nrow(completeActMonData)){
+        ## test to see if steps are NA and intervals match
+        if(is.na(completeActMonData$steps[x]) && completeActMonData$interval[x] == currentinterval){
+            ## set number of steps            
+            completeActMonData$steps[x] <- currentavgsteps
+            }
+        }
+    }
+
+## build df of total steps by date
+sumsteps2 <- aggregate(steps ~ date, completeActMonData, sum) 
+## build histogram
+ggplot(sumsteps2, aes(x=sumsteps2$steps)) + xlab("Steps") + ylab("Count") + geom_histogram(binwidth=500)
+
+
+## calculate mean of steps column
+mean(sumsteps2$steps, na.rm = TRUE)
+
+## calculate median
+median(sumsteps2$steps, na.rm = TRUE)
+
+## I do not see any difference in the mean and median
+
+```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r weekdays, echo = TRUE}
+
+## add and set weekday number column
+completeActMonData["numwkdy"] <- as.POSIXlt(completeActMonData$date)$wday
+
+## subset weekday days and add wkdaytype column
+testsetWkdy <- subset(completeActMonData , completeActMonData$numwkdy != c("0","6"))
+testsetWkdy["wkdaytype"] <- "weekday"
+
+## subset weekend days and add wkdaytype column
+testsetWkEnd <- subset(completeActMonData , completeActMonData$numwkdy == c("0","6"))
+testsetWkEnd["wkdaytype"] <- "weekend"
+
+
+
+## combine subsets
+completeActMonData2 <- rbind(testsetWkdy, testsetWkEnd)
+
+completeActMonData2$wkdaytype <- as.factor(completeActMonData2$wkdaytype)
+
+
+## create aggregates of weekday and weekend sets
+wkdaysteps <- aggregate(steps ~ interval, testsetWkdy, mean) 
+wkendsteps <- aggregate(steps ~ interval, testsetWkEnd, mean) 
+
+## 
+
+plot(wkdaysteps$interval, wkdaysteps$steps, xlab = "Interval", ylab = "Avg. # Steps", type = "l")
+plot(wkendsteps$interval, wkendsteps$steps, xlab = "Interval", ylab = "Avg. # Steps", type = "l")
+
+##ggplot(wkdaysteps, aes(x=wkdaysteps$interval)) + xlab("Interval") + ylab("Steps") + geom_histogram(binwidth=100)
+##ggplot(wkendsteps, aes(x=wkendsteps$interval)) + xlab("Interval") + ylab("Steps") + geom_histogram(binwidth=100)
+
+
+
+
+```
+
+
+
+
+
+
+
